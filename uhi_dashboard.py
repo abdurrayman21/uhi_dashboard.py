@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
 from sklearn.linear_model import LinearRegression
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -89,6 +90,44 @@ if uploaded_file is not None:
             )
             st.pyplot(plt.gcf())
             plt.clf()
+
+            # ---------------- INTERACTIVE VISUALIZATIONS ---------------
+            st.subheader("📈 Interactive: Greenness vs Temperature (Plotly)")
+            fig4 = px.scatter(
+                df, x='Urban Greenness Ratio (%)', y='Temperature (°C)', color='Risk Cluster',
+                hover_data=['City Name', 'Air Quality Index (AQI)', 'Population Density (people/km²)'],
+                title="Greenness vs Temperature (Clustered)"
+            )
+            st.plotly_chart(fig4, use_container_width=True)
+
+            st.subheader("🏙️ Compare Cities by Temperature")
+            selected_cities = st.multiselect("Select Cities to Compare", options=df['City Name'].unique(), default=df['City Name'].unique()[:5])
+            if selected_cities:
+                filtered = df[df['City Name'].isin(selected_cities)]
+                fig5 = px.bar(
+                    filtered,
+                    x='City Name', y='Temperature (°C)', color='City Name',
+                    hover_data=['Urban Greenness Ratio (%)', 'Air Quality Index (AQI)'],
+                    title="City-wise Temperature Comparison"
+                )
+                st.plotly_chart(fig5, use_container_width=True)
+
+            with st.expander("🔍 Show Correlation Heatmap"):
+                st.markdown("Correlations between numeric variables")
+                corr = df[features + ['Temperature (°C)']].corr()
+                fig6 = plt.figure(figsize=(10, 6))
+                sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
+                st.pyplot(fig6)
+
+            with st.expander("🧊 3D Cluster Visualization"):
+                fig7 = px.scatter_3d(
+                    df,
+                    x='Urban Greenness Ratio (%)', y='Air Quality Index (AQI)', z='Temperature (°C)',
+                    color='Risk Cluster', symbol='Risk Cluster',
+                    hover_name='City Name',
+                    title="3D Risk Cluster View"
+                )
+                st.plotly_chart(fig7, use_container_width=True)
 
             # ------------------ RECOMMENDATIONS ----------------------
             st.subheader("📌 City-wise Recommendations")
